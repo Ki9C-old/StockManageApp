@@ -1,0 +1,15 @@
+.SearchBox {
+    margin-left: 20px;
+}
+
+.Table {
+    margin-top: 32px;
+}
+
+.SearchArea {
+    display: flex;
+    margin-top: 100px;
+    gap: 20px;
+    height: 40px;
+    align-items: center
+}

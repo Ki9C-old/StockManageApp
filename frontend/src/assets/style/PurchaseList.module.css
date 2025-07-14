@@ -1,0 +1,33 @@
+.SearchBox {
+    margin-left: 20px;
+}
+
+.Table {
+    margin-top: 32px;
+}
+
+.SearchArea {
+    display: flex;
+    margin-top: 100px;
+    gap: 20px;
+    height: 40px;
+    align-items: center
+}
+
+.detailIcon {
+    color: #7493B4;
+    font-size: 1.2rem;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.detailIcon:hover {
+    color: #0369a1;
+    transform: scale(1.2);
+}
+
+.pagination {
+    position: absolute;
+    bottom: 20px;
+    right: 100px;
+}
