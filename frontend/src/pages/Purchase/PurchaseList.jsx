@@ -4,63 +4,131 @@ import styles from "../../assets/style/PurchaseList.module.css";
 import Button from "../../components/common/Button";
 import { FaCircleInfo } from "react-icons/fa6";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import usePagination from "../../hooks/usePagination"
 import Pagination from "../../components/common/Pagenation"
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-function getPurchaseList() {
-    const rawData = [
-        { Id: '0001', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0002', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0003', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0004', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0005', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0006', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0007', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0008', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0009', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0010', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0011', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0012', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0013', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0014', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0015', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0016', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0017', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0018', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0019', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0020', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0021', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0022', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0023', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0024', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0025', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0026', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-        { Id: '0027', ProductNm: 'パイプ', Quantity: '3', TotalAmountWithTax: '143,200', PurchasedDate: '2025/04/23', DeadlineDate: '2025/04/29', SupplierNm: '株式会社取引先', Note: 'ジャンク品' },
-    ];
-    return rawData
-}
 
 function PurchaseList() {
 
-    const rawData = getPurchaseList();
-    const data = rawData.map((row) => ({
-        ...row,
-        detail: (
-            <Link to={`/purchase/${row.Id}/view`}>
-                <FaCircleInfo className={styles.detailIcon} />
-            </Link>
-        ),
-    }));
+    //--------------状態管理--------------//
+    const [purchaseData, setPurchaseData] = useState([]);       //発注データ
+    const [loading, setLoading] = useState(false);              //ローディング状況
+    const [error, setError] = useState(null);                   //エラー状況
+    const [searchConditions, setSearchConditions] = useState({  //検索条件
+        Id: '',
+        ProductNm: '',
+        ClientNm: '',
+        Note: '',
+    });
+    //--------------状態管理-------------//
 
+
+    //--------------API呼び出し-------------//
+    const fetchPurchaseList = useCallback(async (conditions = {}) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await fetch(`${API_BASE_URL}/purchase/search-list`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(conditions), // 検索条件JSONで送信
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.details || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const formattedData = data.map(item => ({
+                Id: item.PurchaseView_Id,
+                ProductNm: item.PurchaseView_ProductNm,
+                Quantity: item.PurchaseView_Quantity,
+                TotalAmountWithTax: item.PurchaseView_TotalAmountWithTax,
+                PurchasedDate: item.PurchaseView_PurchasedDate,
+                DeadlineDate: item.PurchaseView_DeadlineDate,
+                SupplierNm: item.PurchaseView_ClientNm,
+                Note: item.PurchaseView_Note,
+                // 詳細アイコン
+                detail: (
+                    <Link to={`/purchase/${item.PurchaseView_Id}/view`}>
+                        <FaCircleInfo className={styles.detailIcon} />
+                    </Link>
+                ),
+            }));
+            setPurchaseData(formattedData);
+        } catch (err) {
+            console.error("データ取得エラー:", err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+    //--------------API呼び出し-------------//
+
+
+    //-------------初期表示--------------//
+    useEffect(() => {
+        fetchPurchaseList({});
+    }, [fetchPurchaseList]);        //useEffect内で呼び出す関数は依存配列に入れる必要あり callbackされているので初回しか呼ばれないはず
+    //-------------初期表示--------------//
+
+
+    //-------------検索ボタンクリック時--------------//
+    const handleSearch = () => {
+        const idValue = searchConditions.Id;
+        if (idValue && !/^\d+$/.test(idValue)) {                // idValueが存在し、かつ数字以外が含まれている場合
+            alert("発注番号は半角数字のみで入力してください。");    // エラー
+            return;                                             // 検索中断
+        }
+        fetchPurchaseList(searchConditions);                    //API呼び出し関数 呼び出し 検索条件を引数 
+    };
+    //-------------検索ボタンクリック時--------------//
+
+
+    //-------------検索条件変更時--------------//
+    const handleSearchInputChange = (e) => {
+        const { name, value } = e.target;
+        console.log(`Input changed: Name=${name}, Value=${value}`); // 追加
+        setSearchConditions(prev => {
+            const newState = { ...prev, [name]: value };
+            console.log("New searchConditions state:", newState); // 追加
+            return newState;
+        });
+    };
+    //-------------検索条件変更時--------------//
+
+
+
+    //--------------クリアボタン--------------//
+    const handleClear = () => {
+        setSearchConditions({
+            Id: '',
+            ProductNm: '',
+            ClientNm: '',
+            Note: '',
+        });
+        fetchPurchaseList({});
+    };
+    //--------------クリアボタン--------------//
+
+
+    //--------------テーブルページ分け--------------//
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 16;
 
     const {
         paginatedData,
         totalPages
-    } = usePagination(data, ITEMS_PER_PAGE, currentPage);
+    } = usePagination(purchaseData, ITEMS_PER_PAGE, currentPage);
+    //--------------テーブルページ分け--------------//
 
+
+    //--------------テーブルヘッダー定義--------------//
     const columns = [
         { header: "詳細", accessor: "detail", width: "60px" },
         { header: "発注番号", accessor: "Id", width: "80px" },
@@ -72,27 +140,28 @@ function PurchaseList() {
         { header: "発注先", accessor: "SupplierNm", width: "180px" },
         { header: "発注メモ", accessor: "Note", width: "520px" },
     ];
+    //--------------テーブルヘッダー定義--------------//
 
 
 
     return (
         <>
             <div className={styles.SearchArea}>
-                <div className={styles.SearchBox}>
-                    <SearchBox placeholder="発注番号" />
+                <div className={styles.SearchBox} >
+                    <SearchBox placeholder="発注番号" onChange={handleSearchInputChange} name="Id" value={searchConditions.Id} type="text" />
                 </div>
-                <div className={styles.SearchBox}>
-                    <SearchBox placeholder="商品名" />
+                <div className={styles.SearchBox} >
+                    <SearchBox placeholder="商品名" onChange={handleSearchInputChange} name="ProductNm" value={searchConditions.ProductNm} type="text" />
                 </div>
-                <div className={styles.SearchBox}>
-                    <SearchBox placeholder="発注先" />
+                <div className={styles.SearchBox} >
+                    <SearchBox placeholder="発注先" onChange={handleSearchInputChange} name="ClientNm" value={searchConditions.ClientNm} type="text" />
                 </div>
-                <div className={styles.SearchBox}>
-                    <SearchBox placeholder="メモ" />
+                <div className={styles.SearchBox} >
+                    <SearchBox placeholder="メモ" onChange={handleSearchInputChange} name="Note" value={searchConditions.Note} type="text" />
                 </div>
                 <div>
                     <Button
-                        onClick=""
+                        onClick={handleSearch}
                         color="blue"
                         width="64px"
                         height="40px"
@@ -103,7 +172,7 @@ function PurchaseList() {
                 </div>
                 <div>
                     <Button
-                        onClick=""
+                        onClick={handleClear}
                         color="blue"
                         width="64px"
                         height="40px"

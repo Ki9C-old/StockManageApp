@@ -1,0 +1,60 @@
+/* コピペ */
+
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    /* スピナーの薄い枠線 */
+    border-top: 4px solid #3498db;
+    /* スピナーの上部（回転する部分）の色 */
+    border-radius: 50%;
+    /* 完全な円形にする */
+    width: 40px;
+    /* スピナーの幅 */
+    height: 40px;
+    /* スピナーの高さ */
+    animation: spin 1s linear infinite;
+    /* 1秒で1周、直線的に無限に回転 */
+}
+
+/* 回転アニメーションの定義 */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+        /* 開始角度 */
+    }
+
+    100% {
+        transform: rotate(360deg);
+        /* 終了角度（一周） */
+    }
+}
+
+/* ローディングオーバーレイのスタイル */
+.loadingOverlay {
+    position: fixed;
+    /* 画面全体に固定 */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    /* 半透明の白背景 */
+    display: flex;
+    /* Flexboxで中央寄せ */
+    flex-direction: column;
+    /* 縦方向に要素を並べる */
+    justify-content: center;
+    /* 垂直方向の中央寄せ */
+    align-items: center;
+    /* 水平方向の中央寄せ */
+    z-index: 1000;
+    /* 他のコンテンツの上に表示 */
+}
+
+.loadingMessage {
+    margin-top: 15px;
+    /* スピナーとの間に余白 */
+    font-size: 16px;
+    color: #333;
+    font-weight: bold;
+    /* 少し強調 */
+}

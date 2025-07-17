@@ -22,7 +22,7 @@ function EditableTable({ columns, data, onChange }) {
                                     <input
                                         className={Styles.input}
                                         type="text"
-                                        value={row[col.accessor] || ''}
+                                        value={String(row[col.accessor] || '')}
                                         onChange={(e) =>
                                             onChange(rowIdx, col.accessor, e.target.value)
                                         }
