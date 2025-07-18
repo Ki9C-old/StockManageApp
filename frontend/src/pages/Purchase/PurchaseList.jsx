@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
 import usePagination from "../../hooks/usePagination"
 import Pagination from "../../components/common/Pagenation"
+import LoadingOverlay from "../../components/common/LoadingOverlay";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -14,7 +15,7 @@ function PurchaseList() {
 
     //--------------状態管理--------------//
     const [purchaseData, setPurchaseData] = useState([]);       //発注データ
-    const [loading, setLoading] = useState(false);              //ローディング状況
+    const [isloading, setLoading] = useState(false);              //ローディング状況
     const [error, setError] = useState(null);                   //エラー状況
     const [searchConditions, setSearchConditions] = useState({  //検索条件
         Id: '',
@@ -137,8 +138,8 @@ function PurchaseList() {
         { header: "税込金額（円）", accessor: "TotalAmountWithTax", width: "120px" },
         { header: "発注日", accessor: "PurchasedDate", width: "100px" },
         { header: "納期", accessor: "DeadlineDate", width: "100px" },
-        { header: "発注先", accessor: "SupplierNm", width: "180px" },
-        { header: "発注メモ", accessor: "Note", width: "520px" },
+        { header: "発注先", accessor: "SupplierNm", width: "280px" },
+        { header: "発注メモ", accessor: "Note", width: "320px" },
     ];
     //--------------テーブルヘッダー定義--------------//
 
@@ -146,62 +147,66 @@ function PurchaseList() {
 
     return (
         <>
-            <div className={styles.SearchArea}>
-                <div className={styles.SearchBox} >
-                    <SearchBox placeholder="発注番号" onChange={handleSearchInputChange} name="Id" value={searchConditions.Id} type="text" />
-                </div>
-                <div className={styles.SearchBox} >
-                    <SearchBox placeholder="商品名" onChange={handleSearchInputChange} name="ProductNm" value={searchConditions.ProductNm} type="text" />
-                </div>
-                <div className={styles.SearchBox} >
-                    <SearchBox placeholder="発注先" onChange={handleSearchInputChange} name="ClientNm" value={searchConditions.ClientNm} type="text" />
-                </div>
-                <div className={styles.SearchBox} >
-                    <SearchBox placeholder="メモ" onChange={handleSearchInputChange} name="Note" value={searchConditions.Note} type="text" />
-                </div>
-                <div>
-                    <Button
-                        onClick={handleSearch}
-                        color="blue"
-                        width="64px"
-                        height="40px"
-                        fontSize="16px"
-                    >
-                        検索
-                    </Button>
-                </div>
-                <div>
-                    <Button
-                        onClick={handleClear}
-                        color="blue"
-                        width="64px"
-                        height="40px"
-                        fontSize="16px"
-                    >
-                        クリア
-                    </Button>
-                </div>
-                <div>
-                    <Link to="/purchase/create">
-                        <Button
-                            onClick=""
-                            color="green"
-                            width="80px"
-                            height="40px"
-                            fontSize="16px"
-                        >
-                            新規登録
-                        </Button>
-                    </Link>
-                </div>
-            </div>
-            <div className={styles.Table}>
-                <Table columns={columns} data={paginatedData} />
-            </div>
-            <div className={styles.pagination}>
-                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
-            </div>
-
+            {isloading && <LoadingOverlay />}
+            {!isloading && (
+                <>
+                    <div className={styles.SearchArea}>
+                        <div className={styles.SearchBox} >
+                            <SearchBox placeholder="発注番号" onChange={handleSearchInputChange} name="Id" value={searchConditions.Id} type="text" />
+                        </div>
+                        <div className={styles.SearchBox} >
+                            <SearchBox placeholder="商品名" onChange={handleSearchInputChange} name="ProductNm" value={searchConditions.ProductNm} type="text" />
+                        </div>
+                        <div className={styles.SearchBox} >
+                            <SearchBox placeholder="発注先" onChange={handleSearchInputChange} name="ClientNm" value={searchConditions.ClientNm} type="text" />
+                        </div>
+                        <div className={styles.SearchBox} >
+                            <SearchBox placeholder="メモ" onChange={handleSearchInputChange} name="Note" value={searchConditions.Note} type="text" />
+                        </div>
+                        <div>
+                            <Button
+                                onClick={handleSearch}
+                                color="blue"
+                                width="64px"
+                                height="40px"
+                                fontSize="16px"
+                            >
+                                検索
+                            </Button>
+                        </div>
+                        <div>
+                            <Button
+                                onClick={handleClear}
+                                color="blue"
+                                width="64px"
+                                height="40px"
+                                fontSize="16px"
+                            >
+                                クリア
+                            </Button>
+                        </div>
+                        <div>
+                            <Link to="/purchase/create">
+                                <Button
+                                    onClick=""
+                                    color="green"
+                                    width="80px"
+                                    height="40px"
+                                    fontSize="16px"
+                                >
+                                    新規登録
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                    <div className={styles.Table}>
+                        <Table columns={columns} data={paginatedData} />
+                    </div>
+                    <div className={styles.pagination}>
+                        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+                    </div>
+                </>
+            )}
         </>
 
     )

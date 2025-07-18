@@ -1,10 +1,6 @@
 // ToDo
-// 登録時、空行があれば詰める
-// 株のボタン押下時、Linkの見直し
-// 各エラーチェック 桁数や行数の上限
-// 新規登録時のURLの修正
-// 削除機能実装
-// マスタ検索
+// マスタ検索 → マスタ一覧画面に別タブで飛ばす
+// 発注先コード編集して更新したら。。。
 
 import styles from "../../assets/style/PurchaseDetail.module.css"
 import { useParams, Link } from "react-router-dom";
@@ -13,8 +9,7 @@ import { useEffect, useState, useCallback } from "react";
 import EditableTable from "../../components/common/EditableTable";
 import { useNavigate } from "react-router-dom";
 import LoadingOverlay from "../../components/common/LoadingOverlay";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { searchPurchaseDetail, insertPurchase, updatePurchase, deletePurchase, fillMasterData } from "../../api/purchase";
 
 function PurchaseDetail(props) {
     const { mode } = props;         //modeは親コンポーネントから受け取る
@@ -27,6 +22,7 @@ function PurchaseDetail(props) {
     const [isLoading, setIsLoading] = useState(true);           //REACTエラー回避
     const [tableData, setTableData] = useState([]);             //tableデータの状態管理
     const [originalData, setOriginalData] = useState(null);     // 編集前データ状態管理
+    const [validationTrigger, setValidationTrigger] = useState(false);
     const [originalTableData, setOriginalTableData] = useState([]);
     const [purchaseData, setPurchaseData] = useState({
         Id: "",
@@ -40,82 +36,60 @@ function PurchaseDetail(props) {
     });                                                         //ヘッダー(テーブル以外の情報)
 
 
-
-    //---------------- DBから表示中のIDの発注情報の取得START ----------------//
-    const fetchDataById = useCallback(async (purchaseId) => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/purchase/search-detail`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ Id: purchaseId }), // 発注番号をJSONで送信
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.details || `HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            if (data && data.length > 0) {
-                // ヘッダー情報（最初の行から取得）
-                const headerData = {
-                    Id: String(data[0].PurchaseView_Id || ""),
-                    SupplierCd: data[0].PurchaseView_SupplierCd,
-                    SupplierNm: data[0].PurchaseView_ClientNm,
-                    TotalAmount: String(data[0].PurchaseView_TotalAmount || ""),
-                    TotalAmountWithTax: String(data[0].PurchaseView_TotalAmountWithTax || ""),
-                    Purchase_StatusCd: data[0].PurchaseView_StatusCd,
-                    PurchasedDate: data[0].PurchaseView_PurchasedDate,
-                    DeadlineDate: data[0].PurchaseView_DeadlineDate,
-                    Note: data[0].PurchaseView_Note,
-                };
-                setPurchaseData(headerData);
-                setOriginalData(headerData);
-
-                // 明細情報（配列の各要素から抽出）
-                const detailData = data.map(item => ({
-                    DetailNo: String(item.PurchaseView_DetailNo || ""),
-                    ProductCd: item.PurchaseView_ProductCd,
-                    ProductNm: item.PurchaseView_ProductNm,
-                    Quantity: String(item.PurchaseView_Quantity || ""),
-                    Amount: String(item.PurchaseView_Amount || ""),
-                    TaxTypeCd: item.PurchaseView_TaxTypeId,
-                    TaxTypeNm: item.PurchaseView_TaxTypeNm,
-                    TaxRate: String(item.PurchaseView_TaxRate || ""),
-                }));
-                setTableData(detailData);
-                setOriginalTableData(detailData);
-            } else {
-                // データが見つからない場合
-                setPurchaseData({
-                    Id: "", SupplierCd: "", SupplierNm: "", TotalAmount: "", TotalAmountWithTax: "",
-                    Purchase_StatusCd: "", PurchasedDate: "", DeadlineDate: "", Note: "",
-                });
-                setTableData([]);
-                setOriginalTableData([]);
-                setIsLoading(false);
-            }
-
-        } catch (err) {
-            console.error("詳細データエラー:", err);
-            alert(`詳細データの取得中にエラーが発生しました: ${err.message}`); // ユーザーに通知
-        } finally {
-            setIsLoading(false);
-        }
-    }, [API_BASE_URL]);
-    //---------------- DBから表示中のIDの発注情報の取得 END ----------------//
-
-
-    //---------------- 初期表示で実施 START ----------------//
+    //------------------------------------------ 初期表示で実施 START ------------------------------------------//
     useEffect(() => {
+        setIsLoading(true);
         if (isView || isEdit) {                 // 表示モードか編集モードなら
             if (id) {
-                fetchDataById(id);              // DBから取得関数を動かして
+                searchPurchaseDetail(id).then(data => {
+                    if (!data || data.length === 0) {
+                        alert("データが見つかりません。");
+                        setPurchaseData({
+                            Id: "", SupplierCd: "", SupplierNm: "", TotalAmount: "", TotalAmountWithTax: "",
+                            Purchase_StatusCd: "", PurchasedDate: "", DeadlineDate: "", Note: "",
+                        });
+                        setTableData([]);
+                        setOriginalTableData([]);
+                        setIsLoading(false);
+                        navigate('/purchase');
+                        return;
+                    }
+                    const headerData = {
+                        Id: String(data[0].PurchaseView_Id || ""),
+                        SupplierCd: data[0].PurchaseView_SupplierCd,
+                        SupplierNm: data[0].PurchaseView_ClientNm,
+                        TotalAmount: String(data[0].PurchaseView_TotalAmount || ""),
+                        TotalAmountWithTax: String(data[0].PurchaseView_TotalAmountWithTax || ""),
+                        Purchase_StatusCd: data[0].PurchaseView_StatusCd,
+                        PurchasedDate: data[0].PurchaseView_PurchasedDate,
+                        DeadlineDate: data[0].PurchaseView_DeadlineDate,
+                        Note: data[0].PurchaseView_Note,
+                    };
+
+                    // 明細情報
+                    const detailData = data.map(item => ({
+                        DetailNo: String(item.PurchaseView_DetailNo || ""),
+                        ProductCd: item.PurchaseView_ProductCd,
+                        ProductNm: item.PurchaseView_ProductNm,
+                        Quantity: String(item.PurchaseView_Quantity || ""),
+                        Amount: String(item.PurchaseView_Amount || ""),
+                        TaxTypeCd: item.PurchaseView_TaxTypeId,
+                        TaxTypeNm: item.PurchaseView_TaxTypeNm,
+                        TaxRate: String(item.PurchaseView_TaxRate || ""),
+                    }));
+                    setPurchaseData(headerData);
+                    setOriginalData(headerData);
+                    setTableData(detailData);
+                    setOriginalTableData(detailData);
+
+                }).catch(err => {
+                    alert("データ取得中にエラーが発生しました:", err);
+                    setIsLoading(false);
+                }).finally(() => {
+                    setIsLoading(false);
+                })
             } else {
-                console.warn("URLに発注番号(ID)が指定されていません。");
+                alert("URLに発注番号が指定されていません。");
                 setPurchaseData({
                     Id: "", SupplierCd: "", SupplierNm: "", TotalAmount: "", TotalAmountWithTax: "",
                     Purchase_StatusCd: "", PurchasedDate: "", DeadlineDate: "", Note: "",
@@ -151,45 +125,223 @@ function PurchaseDetail(props) {
             });
             setIsLoading(false);
         }
-    }, [id, mode, isView, isEdit, isCreate, fetchDataById]);                  // IDかmodeが変わったときもやるよ
-    //---------------- 初期表示で実施 END ----------------//
+    }, [id, mode, isView, isEdit, isCreate, navigate]);                  // IDかmodeが変わったときもやるよ
+    //------------------------------------------ 初期表示で実施 END ------------------------------------------//
 
 
-    //---------------- テーブルのヘッダーの定義 START ----------------//
+    //-----------------------------------------INSERT------------------------------------------// UPDATE
+    const handleSubmit = async () => {
+        setIsLoading(true);
+        try {
+            await handleFillMaster(false);
+            setValidationTrigger(true);
+        } catch (err) {
+            alert("マスタ取得中に失敗しました。", err);
+            setIsLoading(false); // エラー時はローディングを解除
+        }
+    }
+
+    useEffect(() => {
+        if (validationTrigger) {
+            const currentSupplierNm = purchaseData.SupplierNm;
+            const cuurentPurchaseDate = purchaseData.PurchasedDate;
+            const cuurentDeadline = purchaseData.DeadlineDate;
+            const currentTableData = tableData.filter(row =>
+                Object.values(row).some(value => value !== "" && value !== null && value !== undefined)                // 空の行を除外
+            ).map((row, index) => ({
+                ...row,
+                DetailNo: (index + 1).toString() // 明細番号を1から振り直す
+            }));
+
+
+            //--------------------------------------- ヘッダー必須 ---------------------------------------//
+            let missingFields = [];
+            if (!currentSupplierNm) {
+                missingFields.push("発注先名");
+            }
+            if (!cuurentPurchaseDate) {
+                missingFields.push("発注日");
+            }
+            if (!cuurentDeadline) {
+                missingFields.push("発注納期");
+            }
+            if (missingFields.length > 0) {
+                alert(`${missingFields.join('、')}が入力されていません。`);
+                setIsLoading(false); // エラー時はローディングを解除
+                setValidationTrigger(false); // トリガーをリセット
+                return;
+            }
+            //--------------------------------------- ヘッダー必須 ---------------------------------------//
+
+
+            //--------------------------------------- テーブル項目必須 ---------------------------------------//
+
+            let rowMissingFields = [];
+            currentTableData.forEach((row, index) => {
+                if (!row.ProductCd) {
+                    rowMissingFields.push(" 商品コード ");
+                }
+                if (!row.Quantity) {
+                    rowMissingFields.push(" 数量 ");
+                }
+                if (!row.Amount) {
+                    rowMissingFields.push(" 単価 ");
+                }
+                if (row.ProductCd && (!row.ProductNm || !row.TaxTypeCd || !row.TaxTypeNm)) {
+                    rowMissingFields.push(" 商品マスタ情報 ");
+                }
+            });
+
+            if (rowMissingFields.length > 0) {
+                const errmsg = `${[...new Set(rowMissingFields)]}を入力してください。`
+                alert(errmsg);
+                setIsLoading(false);
+                setValidationTrigger(false);
+                return;
+            }
+            if (currentTableData.length === 0) {
+                alert("明細が1行も入力されていません。");
+                setIsLoading(false);
+                setValidationTrigger(false);
+                return;
+            }
+
+
+            let tableErrmsg = [];
+            currentTableData.forEach((row, index) => {
+                if (row.Quantity && row.Quantity > 99) {
+                    tableErrmsg.push("数量は100未満で入力してください。");
+                }
+                if (row.Amount && row.Amount > 100000) {
+                    tableErrmsg.push("単価は1000000未満で入力してください。");
+                }
+            });
+
+            if (tableErrmsg.length > 0) {
+                alert(tableErrmsg);
+                setIsLoading(false);
+                setValidationTrigger(false);
+                return;
+            }
+            //--------------------------------------- テーブル項目必須 ---------------------------------------//
+
+
+            const executeSubmission = async () => {
+                try {
+                    const sendData = {
+                        header: {
+                            ...(isEdit && { Id: purchaseData.Id }),
+                            SupplierCd: purchaseData.SupplierCd,
+                            SupplierNm: currentSupplierNm,
+                            TotalAmount: purchaseData.TotalAmount,
+                            TotalAmountWithTax: purchaseData.TotalAmountWithTax,
+                            Purchase_StatusCd: purchaseData.Purchase_StatusCd,
+                            PurchasedDate: purchaseData.PurchasedDate,
+                            DeadlineDate: purchaseData.DeadlineDate,
+                            Note: purchaseData.Note,
+                        },
+                        details: currentTableData.map(detail => ({
+                            DetailNo: detail.DetailNo,
+                            ProductCd: detail.ProductCd,
+                            ProductNm: detail.ProductNm,
+                            Quantity: detail.Quantity,
+                            Amount: detail.Amount,
+                            TaxTypeCd: detail.TaxTypeCd,
+                            TaxRate: detail.TaxRate,
+                        })),
+                    };
+
+                    let result;
+                    if (isCreate) {
+                        const newId = await insertPurchase(sendData);
+                        if (newId) {
+                            navigate(`/purchase/${newId}/view`);
+                        } else {
+                            alert("新規登録後、発注IDが取得できませんでした。一覧画面へ遷移します。");
+                            navigate('/purchase');
+                        }
+                    } else if (isEdit) {
+                        result = await updatePurchase(sendData);
+                        alert("更新が完了しました。", result);
+                        navigate(`/purchase/${id}/view`);
+                    } else {
+                        throw new Error("無効なモードです。");
+                    }
+                } catch (err) {
+                    alert("登録処理中にエラーが発生しました:", err);
+                } finally {
+                    setIsLoading(false); // 処理完了後、ローディングを解除
+                    setValidationTrigger(false); // トリガーをリセット
+                }
+            };
+            executeSubmission();
+        }
+    }, [validationTrigger, purchaseData, tableData, isEdit, isCreate, id, navigate]);
+    //-----------------------------------------INSERT------------------------------------------//
+
+
+    //-----------------------------------------DELETE------------------------------------------//
+    const handleDelete = async () => {
+        if (!window.confirm("削除してよろしいですか？")) {
+            return;
+        }
+        setIsLoading(true);
+        try {
+            const deleteId = { PurchaseId: id };
+            await deletePurchase(deleteId);
+            alert('削除完了しました。')
+            navigate('/purchase');
+        } catch (err) {
+            alert(`削除処理に失敗しました: ${err.message}`);
+            setIsLoading(false)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+    //-----------------------------------------DELETE------------------------------------------//
+
+
+    //------------------------------------------ テーブルのヘッダーの定義 START ------------------------------------------//
     const tableColumns = [
         { header: "明細番号", accessor: "DetailNo", width: "80px", editable: false },
-        { header: "商品コード", accessor: "ProductCd", width: "200px", editable: false },
-        { header: "商品名", accessor: "ProductNm", width: "400px", editable: true },
+        { header: "商品コード", accessor: "ProductCd", width: "200px", editable: true },
+        { header: "商品名", accessor: "ProductNm", width: "400px", editable: false },
         { header: "数量", accessor: "Quantity", width: "80px", editable: true },
         { header: "単価", accessor: "Amount", width: "80px", editable: true },
         { header: "消費税区分", accessor: "TaxTypeCd", width: "80px", editable: false },
-        { header: "消費税区分名", accessor: "TaxTypeNm", width: "100px", editable: true },
+        { header: "消費税区分名", accessor: "TaxTypeNm", width: "100px", editable: false },
         { header: "消費税率", accessor: "TaxRate", width: "100px", editable: false },
     ];
-    //---------------- テーブルのヘッダーの定義 END ----------------//
+    //------------------------------------------ テーブルのヘッダーの定義 END ------------------------------------------//
 
 
-    //---------------- TABLEの中身が変わったら START ----------------//
+    //------------------------------------------ TABLEの中身が変わったら START ------------------------------------------//
     const handleTableChange = (rowIdx, accessor, value) => {    // 変わった行のindexそ受けとる
         const updated = [...tableData];                         // いまのデータを取っておいて
         updated[rowIdx][accessor] = value;                      // 受け取った行の受け取った列を上書き
         setTableData(updated);                                  // 状態管理関数に渡す
     };
-    //---------------- TABLEの中身が変わったら END ----------------//
+    //------------------------------------------ TABLEの中身が変わったら END ------------------------------------------//
 
 
-    //---------------- 表以外が変わったら START ----------------//
+    //------------------------------------------ 表以外が変わったら START ------------------------------------------//
     const handlePurchaseChange = (field, value) => {
         setPurchaseData(prev => ({
             ...prev,
             [field]: value
         }));
     };
-    //---------------- 表以外が変わったら END ----------------//
+    //------------------------------------------ 表以外が変わったら END ------------------------------------------//
 
 
-    //---------------- 行追加 START ----------------//
+    //------------------------------------------ 行追加 START ------------------------------------------//
     const handleAddRow = () => {
+
+        if (tableData.length >= 10) {
+            alert("明細は10行までしか追加できません。");
+            return;
+        }
+
         const newRow = {
             DetailNo: (tableData.length + 1).toString(),
             ProductCd: "",
@@ -201,12 +353,106 @@ function PurchaseDetail(props) {
         };
         setTableData([...tableData, newRow]);
     };
-    //---------------- 行追加 END ----------------//
+    //------------------------------------------ 行追加 END ------------------------------------------//
 
-    //---------------- マスタ検索 ToDo START ----------------//
+
+    //------------------------------------------ マスタ問合せ------------------------------------------//
+    const handleFillMaster = async (loadingState) => {
+        if (loadingState) {
+            setIsLoading(true);
+        }
+        try {
+            const supplierCd = purchaseData.SupplierCd;
+            const productCds = tableData.map(row => row.ProductCd).filter(Boolean);
+            const data = await fillMasterData(supplierCd, productCds);
+
+            if (data.supplierMaster && data.supplierMaster.ClientMaster_ClientNm) {
+                setPurchaseData(prev => ({
+                    ...prev,
+                    SupplierNm: data.supplierMaster.ClientMaster_ClientNm,
+                }));
+                let supplierFound = true;
+            } else {
+                setPurchaseData(prev => ({ ...prev, SupplierNm: "" }));
+            }
+
+            if (data.productMasters && data.productMasters.length > 0) {
+                let productsFoundInQuery = true;
+                setTableData(prevTableData => {
+                    let newTableData = [...prevTableData];
+                    newTableData.forEach((row, idx) => {
+                        const masterItem = data.productMasters.find(
+                            mi => mi.ProductMaster_ProductCd === Number(String(row.ProductCd).trim())
+                        );
+                        if (masterItem) {
+                            newTableData[idx] = {
+                                ...newTableData[idx],
+                                ProductNm: masterItem.ProductMaster_ProductNm,
+                                TaxTypeCd: masterItem.ProductMaster_TaxTypeId,
+                                TaxTypeNm: masterItem.ProductMaster_TaxTypeNm,
+                                TaxRate: String(masterItem.ProductMaster_TaxRate)
+                            };
+                        } else if (row.ProductCd !== "") {
+                            newTableData[idx] = {
+                                ...newTableData[idx],
+                                ProductNm: "",
+                                TaxTypeCd: "",
+                                TaxTypeNm: "",
+                                TaxRate: "",
+                            };
+                        } else {
+                        }
+                    });
+
+                    // ここで完全に空の行をフィルタリングし、明細番号を振り直す
+                    const filteredAndReindexed = newTableData.filter(row =>
+                        Object.keys(row).filter(key => key == 'ProductCd').some(key => row[key] !== "" && row[key] !== null && row[key] !== undefined)
+                    ).map((row, index) => ({
+                        ...row,
+                        DetailNo: (index + 1).toString()
+                    }));
+                    return filteredAndReindexed;
+                });
+            } else {
+                setTableData(prevTableData => {
+                    let newTableData = [...prevTableData];
+                    newTableData.forEach((row, idx) => {
+                        if (row.ProductCd !== "") {
+                            newTableData[idx] = {
+                                ...newTableData[idx],
+                                ProductNm: "",
+                                TaxTypeCd: "",
+                                TaxTypeNm: "",
+                                TaxRate: "",
+                            };
+                        }
+                    });
+                    // ここで完全に空の行をフィルタリングし、明細番号を振り直す
+                    const filteredAndReindexed = newTableData.filter(row =>
+                        Object.values(row).some(value => value !== "" && value !== null && value !== undefined)
+                    ).map((row, index) => ({
+                        ...row,
+                        DetailNo: (index + 1).toString()
+                    }));
+                    return filteredAndReindexed;
+                });
+            }
+
+        } catch (err) {
+            alert(`マスタ問合せ中にエラーが発生しました: ${err.message}`);
+        } finally {
+            if (loadingState) {
+                setIsLoading(false);
+            }
+        }
+    };
+    //------------------------------------------ マスタ問合せ------------------------------------------//
+
+
+    //------------------------------------------ マスタ検索 ToDo START ------------------------------------------//
     const handleGetMaster = () => {
     };
-    //---------------- マスタ検索 ToDo END ----------------//
+    //------------------------------------------ マスタ検索 ToDo END ------------------------------------------//
 
 
     return (
@@ -224,14 +470,14 @@ function PurchaseDetail(props) {
                             </div>
                             <div className={styles.row}>
                                 <div className={styles.labelCell}>発注先コード</div>
-                                <div className={`${styles.inputCell} ${isView ? "" : styles.disabled}`}>
-                                    <input disabled onChange={(e) => handlePurchaseChange("SupplierCd", e.target.value)} value={purchaseData?.SupplierCd} />
+                                <div className={styles.inputCell}>
+                                    <input onChange={(e) => handlePurchaseChange("SupplierCd", e.target.value)} value={purchaseData?.SupplierCd} disabled={isView} />
                                 </div>
                             </div>
                             <div className={styles.row}>
                                 <div className={styles.labelCell}>発注先名</div>
-                                <div className={styles.inputCell}>
-                                    <input onChange={(e) => handlePurchaseChange("SupplierNm", e.target.value)} value={purchaseData?.SupplierNm} />
+                                <div className={`${styles.inputCell} ${isView ? "" : styles.disabled}`}>
+                                    <input disabled onChange={(e) => handlePurchaseChange("SupplierNm", e.target.value)} value={purchaseData?.SupplierNm} />
                                 </div>
                             </div>
                         </div>
@@ -249,25 +495,19 @@ function PurchaseDetail(props) {
                                     <input disabled onChange={(e) => handlePurchaseChange("TotalAmountWithTax", e.target.value)} value={purchaseData?.TotalAmountWithTax} />
                                 </div>
                             </div>
-                            <div className={styles.row}>
-                                <div className={styles.labelCell}>ステータス</div>
-                                <div className={`${styles.inputCell} ${isView ? "" : styles.disabled}`}>
-                                    <input disabled onChange={(e) => handlePurchaseChange("Purchase_StatusCd", e.target.value)} value={purchaseData?.Purchase_StatusCd} />
-                                </div>
-                            </div>
                         </div>
 
                         <div className={styles.infoBlock}>
                             <div className={styles.row}>
                                 <div className={styles.labelCell}>発注日</div>
                                 <div className={styles.inputCell}>
-                                    <input onChange={(e) => handlePurchaseChange("PurchasedDate", e.target.value)} disabled={isView} value={purchaseData?.PurchasedDate} />
+                                    <input type="date" onChange={(e) => handlePurchaseChange("PurchasedDate", e.target.value)} disabled={isView} value={purchaseData?.PurchasedDate} />
                                 </div>
                             </div>
                             <div className={styles.row}>
                                 <div className={styles.labelCell}>発注納期</div>
                                 <div className={styles.inputCell}>
-                                    <input onChange={(e) => handlePurchaseChange("DeadlineDate", e.target.value)} disabled={isView} value={purchaseData?.DeadlineDate} />
+                                    <input type="date" onChange={(e) => handlePurchaseChange("DeadlineDate", e.target.value)} disabled={isView} value={purchaseData?.DeadlineDate} />
                                 </div>
                             </div>
                             <div className={styles.row}>
@@ -302,6 +542,17 @@ function PurchaseDetail(props) {
                                         マスタ検索
                                     </Button>
                                 </div>
+                                <div className={styles.getMaster}>
+                                    <Button
+                                        onClick={() => handleFillMaster(true)}
+                                        color="blue"
+                                        width="100px"
+                                        height="36px"
+                                        fontSize="13px"
+                                    >
+                                        マスタ問合せ
+                                    </Button>
+                                </div>
                             </div>
 
                             <EditableTable
@@ -324,22 +575,30 @@ function PurchaseDetail(props) {
                                 <Link to={`/purchase/${id}/edit`}>
                                     <Button color="green" width="60px" height="36px" fontSize="13px">編集</Button>
                                 </Link>
-                                <Link to={`/purchase/${id}/edit`}>
-                                    <Button color="red" width="60px" height="36px" fontSize="13px">削除</Button>
-                                </Link>
+                                <Button onClick={handleDelete} color="red" width="60px" height="36px" fontSize="13px">削除</Button>
                             </>
                         )}
                         {(isEdit || isCreate) && (
                             <>
-                                <Link to={`/purchase/${id}/view`}>
-                                    <Button color="green" width="60px" height="36px" fontSize="13px">登録</Button>
-                                </Link>
+                                <Button
+                                    onClick={handleSubmit}
+                                    color="green"
+                                    width="60px"
+                                    height="36px"
+                                    fontSize="13px"
+                                >
+                                    登録
+                                </Button>
                                 <Button onClick={() => {
                                     if (originalData) {
                                         setPurchaseData(originalData);
                                         setTableData(originalTableData);
                                     }
-                                    navigate(`/purchase/${id}/view`);
+                                    if (isCreate) {
+                                        navigate('/purchase');
+                                    } else {
+                                        navigate(`/purchase/${id}/view`);
+                                    }
                                 }} color="red" width="80px" height="36px" fontSize="13px">キャンセル</Button>
                             </>
                         )}
