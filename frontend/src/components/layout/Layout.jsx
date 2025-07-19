@@ -1,4 +1,4 @@
-import Header from "./header";
+import Header from './header';
 import Sidebar from "./Sidebar";
 import { Outlet, useLocation, matchPath, useNavigate } from 'react-router-dom';
 
