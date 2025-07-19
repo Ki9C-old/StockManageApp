@@ -1,12 +1,17 @@
 import Header from "./header";
 import Sidebar from "./Sidebar";
-import { Outlet, useLocation, matchPath } from 'react-router-dom';
+import { Outlet, useLocation, matchPath, useNavigate } from 'react-router-dom';
+
 
 function Layout() {
     const location = useLocation();
     const path = location.pathname;
+    const navigate = useNavigate();
 
     const pathToFuncName = [
+        //Login
+        { pattern: '/login', name: 'ログイン' },
+
         //HOME
         { pattern: '/', name: 'トップページ' },
         { pattern: '/home', name: 'トップページ' },
@@ -47,14 +52,26 @@ function Layout() {
 
     const match = pathToFuncName.find(({ pattern }) => matchPath(pattern, path));
     const funcName = match?.name || '機能未定義';
+    const isLogin = match?.pattern == '/login'
 
     return (
         <>
-            <Header funcName={funcName} />
-            <Sidebar />
-            <div style={{ marginLeft: '12%', marginTop: '80px' }}>
-                <Outlet />
-            </div>
+            {!isLogin ?
+                <>
+                    <Header funcName={funcName} />
+                    <Sidebar />
+                    <div style={{ marginLeft: '12%', marginTop: '80px' }}>
+                        <Outlet />
+                    </div>
+                </>
+                :
+                <>
+                    <Header funcName={funcName} />
+                    <div style={{ marginLeft: '12%', marginTop: '80px' }}>
+                        <Outlet />
+                    </div>
+                </>
+            }
         </>
     );
 }

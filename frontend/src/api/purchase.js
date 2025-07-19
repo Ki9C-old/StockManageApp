@@ -4,6 +4,7 @@ export const searchPurchaseDetail = async (purchaseId) => {
     try {
         const response = await fetch(`${API_BASE_URL}/purchase/search-detail`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -30,6 +31,7 @@ export const insertPurchase = async (data) => {
     try {
         const response = await fetch(`${API_BASE_URL}/purchase/insert`, {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -53,6 +55,7 @@ export const updatePurchase = async (data) => {
     try {
         const response = await fetch(`${API_BASE_URL}/purchase/update`, {
             method: 'PUT',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -72,6 +75,7 @@ export const deletePurchase = async (id) => {
     try {
         const response = await fetch(`${API_BASE_URL}/purchase/delete`, {
             method: "POST",
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -89,6 +93,7 @@ export const deletePurchase = async (id) => {
 export const fillMasterData = async (supplierCd, productCds) => {
     const response = await fetch(`${API_BASE_URL}/purchase/fill-master`, {
         method: "POST",
+        credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
         },

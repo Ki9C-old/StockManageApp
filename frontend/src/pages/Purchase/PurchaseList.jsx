@@ -33,6 +33,7 @@ function PurchaseList() {
         try {
             const response = await fetch(`${API_BASE_URL}/purchase/search-list`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                 },
