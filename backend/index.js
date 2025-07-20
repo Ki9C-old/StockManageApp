@@ -16,6 +16,12 @@ const PORT = process.env.PORT;
 
 app.use(express.json());
 
+app.use(cors({
+  origin: [process.env.FRONT_URL, process.env.FRONT_URL_SUB, process.env.FRONT_URL_FIN],
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true
+}));
+
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -26,12 +32,6 @@ app.use(session({
     secure: true,
     sameSite: 'none'
   },
-}));
-
-app.use(cors({
-  origin: [process.env.FRONT_URL, process.env.FRONT_URL_SUB, process.env.FRONT_URL_FIN],
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true
 }));
 
 // ルーティング
