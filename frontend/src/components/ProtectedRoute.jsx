@@ -10,9 +10,18 @@ function ProtectedRoute({ children }) {
 
     useEffect(() => {
         const checkLogin = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setLoggedIn(false);
+                setLoading(false);
+                return;
+            }
+
             try {
                 const responce = await fetch(`${API_BASE_URL}/auth/check`, {
-                    credentials: 'include',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                 })
 
                 const data = await responce.json();

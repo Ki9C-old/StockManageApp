@@ -4,12 +4,9 @@ import cors from 'cors';
 import purchaseRoutes from './routes/purchaseRoutes.js';
 import loginRoutes from './routes/login.js';
 import logoutRoutes from './routes/logout.js';
-import session from 'express-session';
 import authRoutes from './routes/auth.js'
 
 dotenv.config();
-
-
 
 const app = express();
 const PORT = process.env.PORT;
@@ -22,18 +19,6 @@ app.use(cors({
   origin: [process.env.FRONT_URL, process.env.FRONT_URL_SUB, process.env.FRONT_URL_FIN],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true
-}));
-
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    maxAge: 3600000,
-    secure: true,
-    sameSite: 'none'
-  },
 }));
 
 // ルーティング

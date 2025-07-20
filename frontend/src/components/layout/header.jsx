@@ -3,7 +3,6 @@ import Button from '../common/Button';
 import { MdFactory } from "react-icons/md";
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 
 function Header(props) {
@@ -11,20 +10,10 @@ function Header(props) {
     const navigate = useNavigate();
 
     const handleLogout = async () => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/logout/logout`, {
-                method: 'POST',
-                credentials: 'include',
-            });
-            if (!response.ok) {
-                alert('ログアウト処理に失敗しました。')
-            } else {
-                navigate('/login');
-            }
-        } catch (err) {
-            alert(err);
-        }
+        localStorage.removeItem('token');
+        navigate('/login');
     }
+
     return (
         <header className={styles.header}>
             <Link to="/home" className={styles.iconLink}>

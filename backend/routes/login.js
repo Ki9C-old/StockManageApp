@@ -3,7 +3,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 const router = express.Router();
 import bcrypt from 'bcrypt';
-import session from 'express-session';
+import jwt from 'jsonwebtoken';
 
 
 
@@ -35,14 +35,16 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ details: 'パスワードが違います' });
         }
 
-        req.session.user = {
-            id: user.Users_Id,
-            userId: user.Users_LoginId,
-        };
+        const token = jwt.sign(
+            {
+                id: user.Users_Id,
+                userId: user.Users_LoginId,
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
 
-        req.session.save(() => {
-            res.json({ message: 'ログイン成功' });
-        });
+        res.json({ token });
 
     } catch (err) {
         return res.status(500).json({ details: 'サーバーエラー' });

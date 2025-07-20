@@ -4,7 +4,6 @@ const login = async (loginData) => {
     try {
         const response = await fetch(`${API_BASE_URL}/login/login`, {
             method: 'POST',
-            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -15,7 +14,11 @@ const login = async (loginData) => {
             const errorData = await response.json();
             throw new Error(errorData.details || `HTTP error! status: ${response.status}`);
         }
-        return await response.json();
+
+        const result = await response.json();
+
+        localStorage.setItem('token', result.token);
+        return result;
     } catch (err) {
         throw err;
     }
