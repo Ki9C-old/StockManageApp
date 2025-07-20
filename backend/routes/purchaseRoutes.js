@@ -314,7 +314,7 @@ router.post('/fill-master', async (req, res) => {
                 .single();
 
             // PGRST116は「見つからない」エラーなので、それ以外の場合のみエラーとして処理
-            if (supplierError && supplierError.code !== 'PGRST116') {
+            if (supplierError && supplierError.code !== '22P02') {
                 console.error('サプライヤーマスタ検索エラー:', supplierError);
                 throw new Error('サプライヤーマスタの検索に失敗しました。' + supplierError.message);
             }

@@ -1,6 +1,5 @@
 // ToDo
 // マスタ検索 → マスタ一覧画面に別タブで飛ばす
-// 発注先コード編集して更新したら。。。
 
 import styles from "../../assets/style/PurchaseDetail.module.css"
 import { useParams, Link } from "react-router-dom";
@@ -129,9 +128,36 @@ function PurchaseDetail(props) {
     //------------------------------------------ 初期表示で実施 END ------------------------------------------//
 
 
+    //------------------------------------------ 金額計算 ------------------------------------------//
+    const calculateTotals = () => {
+        const subtotal = tableData.reduce((sum, row) => {
+            const qty = parseFloat(row.Quantity) || 0;
+            const amt = parseFloat(row.Amount) || 0;
+            return sum + (qty * amt);
+        }, 0);
+
+        const totalWithTax = tableData.reduce((sum, row) => {
+            const qty = parseFloat(row.Quantity) || 0;
+            const amt = parseFloat(row.Amount) || 0;
+            const rate = parseFloat(row.TaxRate) || 0;
+            const lineTotal = qty * amt;
+            return sum + lineTotal * (1 + rate / 100);
+        }, 0);
+
+        setPurchaseData(prev => ({
+            ...prev,
+            TotalAmount: subtotal.toFixed(0),
+            TotalAmountWithTax: totalWithTax.toFixed(0),
+        }));
+    };
+    //------------------------------------------ 金額計算 ------------------------------------------//
+
+
     //-----------------------------------------INSERT------------------------------------------// UPDATE
     const handleSubmit = async () => {
         setIsLoading(true);
+        calculateTotals();
+
         try {
             await handleFillMaster(false);
             setValidationTrigger(true);

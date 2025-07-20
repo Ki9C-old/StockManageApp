@@ -21,8 +21,8 @@ app.use(session({
   cookie: {
     httpOnly: true,
     maxAge: 3600000,
-    secure: true,
-    sameSite: 'lax'
+    secure: process.env.PRODUCT,
+    sameSite: 'none'
   },
 }));
 
