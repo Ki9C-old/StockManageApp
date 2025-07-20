@@ -1,21 +1,20 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styles from '../assets/style/Login.module.css';
 import SearchBox from '../components/common/SearchBox';
 import Button from '../components/common/Button';
 import LoadingOverlay from '../components/common/LoadingOverlay'
 import login from '../api/login'
 import { useNavigate } from 'react-router-dom';
-import checkAuth from '../api/checkAuth';
-import { useAuth } from '../AuthContext';
 import { MdFactory } from "react-icons/md";
+
+
+
 
 function Login() {
     const [userId, setUserId] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
-    const { setIsLoggedIn } = useAuth();
 
     const handleUserIdChange = (e) => {
         setUserId(e.target.value);
@@ -23,7 +22,6 @@ function Login() {
     const handlePasswordChange = (e) => {
         setPassword(e.target.value);
     }
-
 
     const handleLogin = async () => {
         setIsLoading(true);
@@ -40,7 +38,6 @@ function Login() {
 
         try {
             await login(loginData);
-            setIsLoggedIn(true);
             navigate('/home');
         } catch (err) {
             alert(err);
@@ -48,8 +45,6 @@ function Login() {
 
         setIsLoading(false);
     }
-
-
 
     return (
         <>
