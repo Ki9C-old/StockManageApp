@@ -13,19 +13,6 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT;
-const PRODUCT = process.env.PRODUCT;
-
-let sameSiteStr = '';
-let secure = false;
-
-if (PRODUCT == 'true') {
-  secure = true
-  sameSiteStr = 'None';
-} else {
-  secure = false
-  sameSiteStr = 'lax'
-}
-
 
 app.use(express.json());
 
@@ -36,8 +23,8 @@ app.use(session({
   cookie: {
     httpOnly: true,
     maxAge: 3600000,
-    secure: secure,
-    sameSite: sameSiteStr
+    secure: true,
+    sameSite: 'none'
   },
 }));
 
