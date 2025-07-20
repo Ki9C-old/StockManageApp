@@ -20,7 +20,7 @@ let secure = false;
 
 if (PRODUCT == 'true') {
   secure = true
-  sameSiteStr = 'none';
+  sameSiteStr = 'None';
 } else {
   secure = false
   sameSiteStr = 'lax'
