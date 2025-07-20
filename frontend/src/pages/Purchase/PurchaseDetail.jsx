@@ -144,11 +144,10 @@ function PurchaseDetail(props) {
             return sum + lineTotal * (1 + rate / 100);
         }, 0);
 
-        setPurchaseData(prev => ({
-            ...prev,
+        return {
             TotalAmount: subtotal.toFixed(0),
-            TotalAmountWithTax: totalWithTax.toFixed(0),
-        }));
+            TotalAmountWithTax: totalWithTax.toFixed(0)
+        }
     };
     //------------------------------------------ 金額計算 ------------------------------------------//
 
@@ -156,14 +155,15 @@ function PurchaseDetail(props) {
     //-----------------------------------------INSERT------------------------------------------// UPDATE
     const handleSubmit = async () => {
         setIsLoading(true);
-        calculateTotals();
 
         try {
             await handleFillMaster(false);
-            setValidationTrigger(true);
+            setTimeout(() => {
+                setValidationTrigger(true);
+            }, 0);
         } catch (err) {
             alert("マスタ取得中に失敗しました。", err);
-            setIsLoading(false); // エラー時はローディングを解除
+            setIsLoading(false);
         }
     }
 
@@ -178,8 +178,6 @@ function PurchaseDetail(props) {
                 ...row,
                 DetailNo: (index + 1).toString() // 明細番号を1から振り直す
             }));
-
-
             //--------------------------------------- ヘッダー必須 ---------------------------------------//
             let missingFields = [];
             if (!currentSupplierNm) {
@@ -253,14 +251,20 @@ function PurchaseDetail(props) {
 
 
             const executeSubmission = async () => {
+                const totals = calculateTotals();
+                setPurchaseData(prev => ({
+                    ...prev,
+                    TotalAmount: totals.TotalAmount || "0",
+                    TotalAmountWithTax: totals.TotalAmountWithTax || "0"
+                }));
                 try {
                     const sendData = {
                         header: {
                             ...(isEdit && { Id: purchaseData.Id }),
                             SupplierCd: purchaseData.SupplierCd,
                             SupplierNm: currentSupplierNm,
-                            TotalAmount: purchaseData.TotalAmount,
-                            TotalAmountWithTax: purchaseData.TotalAmountWithTax,
+                            TotalAmount: totals.TotalAmount,
+                            TotalAmountWithTax: totals.TotalAmountWithTax,
                             Purchase_StatusCd: purchaseData.Purchase_StatusCd,
                             PurchasedDate: purchaseData.PurchasedDate,
                             DeadlineDate: purchaseData.DeadlineDate,
@@ -302,7 +306,7 @@ function PurchaseDetail(props) {
             };
             executeSubmission();
         }
-    }, [validationTrigger, purchaseData, tableData, isEdit, isCreate, id, navigate]);
+    }, [validationTrigger]);
     //-----------------------------------------INSERT------------------------------------------//
 
 

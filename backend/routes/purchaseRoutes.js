@@ -107,8 +107,10 @@ router.post('/search-detail', async (req, res) => {
 //新規登録 発注一覧・発注明細INSERT
 router.post('/insert', async (req, res) => {
     const { header, details } = req.body;
-    let calculatedTotalAmount = 0
-    let calculatedTotalAmountWithTax = 0
+    console.log(req)
+    // let calculatedTotalAmount = 0
+    // let calculatedTotalAmountWithTax = 0
+
     if (!header || !details || details.length === 0) {
         return res.status(400).json({ error: 'headerまたはdetailsが不足しています。' });
     }
@@ -131,8 +133,8 @@ router.post('/insert', async (req, res) => {
             .insert([
                 {
                     Purchase_SupplierCd: header.SupplierCd,
-                    Purchase_TotalAmount: calculatedTotalAmount,
-                    Purchase_TotalAmountWithTax: calculatedTotalAmountWithTax,
+                    Purchase_TotalAmount: header.TotalAmount,
+                    Purchase_TotalAmountWithTax: header.TotalAmountWithTax,
                     Purchase_PurchasedDate: header.PurchasedDate,
                     Purchase_DeadlineDate: header.DeadlineDate,
                     Purchase_StatusCd: '0',
