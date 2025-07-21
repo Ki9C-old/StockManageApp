@@ -21,7 +21,7 @@ router.post('/search-list', async (req, res) => {
                 PurchaseView_ClientNm,
                 PurchaseView_Note`
             )
-
+            .order('PurchaseView_Id', { ascending: false })
         //発注番号
         if (conditions["Id"]) {
             query = query.eq('PurchaseView_Id', conditions["Id"]);
