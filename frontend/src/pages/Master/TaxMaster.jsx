@@ -1,5 +1,5 @@
 import Table from '../../components/common/Table'
-import getTaxMaster from '../../api/taxMaster'
+import getTaxMaster from '../../api/taxmaster'
 import { useCallback, useEffect, useState } from 'react';
 import LoadingOverlay from '../../components/common/LoadingOverlay';
 import styles from '../../assets/style/MasterDetail.module.css'
