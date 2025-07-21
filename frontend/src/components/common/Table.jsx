@@ -1,4 +1,5 @@
 import Styles from "../../assets/style/Table.module.css"
+import { Link } from "react-router-dom";
 
 function Table(props) {
 
@@ -20,7 +21,15 @@ function Table(props) {
                     {data.map((row, rowIdx) => (
                         <tr key={rowIdx}>
                             {columns.map((col, colIdx) => (
-                                <td key={colIdx}>{row[col.accessor]}</td>
+                                <td key={colIdx} className={Styles.clickableCell}>
+                                    {col.accessor === "masterName" && row.path ? (
+                                        <Link to={`/master/${row.path}`} className={Styles.link}>
+                                            {row[col.accessor]}
+                                        </Link>
+                                    ) : (
+                                        row[col.accessor]
+                                    )}
+                                </td>
                             ))}
                         </tr>
                     ))}

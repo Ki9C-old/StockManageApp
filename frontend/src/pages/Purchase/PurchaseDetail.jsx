@@ -1,6 +1,3 @@
-// ToDo
-// マスタ検索 → マスタ一覧画面に別タブで飛ばす
-
 import styles from "../../assets/style/PurchaseDetail.module.css"
 import { useParams, Link } from "react-router-dom";
 import Button from "../../components/common/Button";
@@ -9,6 +6,7 @@ import EditableTable from "../../components/common/EditableTable";
 import { useNavigate } from "react-router-dom";
 import LoadingOverlay from "../../components/common/LoadingOverlay";
 import { searchPurchaseDetail, insertPurchase, updatePurchase, deletePurchase, fillMasterData } from "../../api/purchase";
+import { ImNewTab } from "react-icons/im";
 
 function PurchaseDetail(props) {
     const { mode } = props;         //modeは親コンポーネントから受け取る
@@ -479,10 +477,11 @@ function PurchaseDetail(props) {
     //------------------------------------------ マスタ問合せ------------------------------------------//
 
 
-    //------------------------------------------ マスタ検索 ToDo START ------------------------------------------//
+    //------------------------------------------ マスタ検索  START ------------------------------------------//
     const handleGetMaster = () => {
+        window.open('/master', '_blank');
     };
-    //------------------------------------------ マスタ検索 ToDo END ------------------------------------------//
+    //------------------------------------------ マスタ検索  END ------------------------------------------//
 
 
     return (
@@ -569,7 +568,7 @@ function PurchaseDetail(props) {
                                         height="36px"
                                         fontSize="13px"
                                     >
-                                        マスタ検索
+                                        マスタ検索<ImNewTab style={{ marginLeft: "4px", verticalAlign: "middle" }} />
                                     </Button>
                                 </div>
                                 <div className={styles.getMaster}>

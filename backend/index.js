@@ -5,6 +5,7 @@ import purchaseRoutes from './routes/purchaseRoutes.js';
 import loginRoutes from './routes/login.js';
 import logoutRoutes from './routes/logout.js';
 import authRoutes from './routes/auth.js'
+import masterRoutes from './routes/master.js'
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use('/api/purchase', purchaseRoutes);
 app.use('/api/login', loginRoutes)
 app.use('/api/logout', logoutRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/master', masterRoutes);
 
 
 // 起動

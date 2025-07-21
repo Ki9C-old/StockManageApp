@@ -48,6 +48,9 @@ function Layout() {
 
         //マスタ系機能
         { pattern: '/master', name: '各種マスタ' },
+        { pattern: '/master/product', name: '商品マスタ' },
+        { pattern: '/master/client', name: '取引先マスタ' },
+        { pattern: '/master/tax', name: '消費税マスタ' },
     ];
 
     const match = pathToFuncName.find(({ pattern }) => matchPath(pattern, path));

@@ -46,10 +46,8 @@ router.post('/search-list', async (req, res) => {
         if (error) {
             throw error;
         }
-        console.log(data)
         res.status(200).json(data);
     } catch (e) {
-        console.error("エラー発生", e);
         res.status(500).json({ error: true, code: e.code || e.toString() });
     }
 });

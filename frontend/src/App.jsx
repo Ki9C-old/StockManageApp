@@ -11,6 +11,9 @@ import SlipList from './pages/Slip/SlipList';
 import MasterList from './pages/Master/MasterList';
 import PurchaseDetail from './pages/Purchase/PurchaseDetail';
 import Login from "./pages/Login"
+import ProductMaster from './pages/Master/ProductMaster.jsx';
+import ClientMaster from './pages/Master/ClientMaster.jsx';
+import TaxMaster from './pages/Master/TaxMaster.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 function App() {
@@ -34,6 +37,9 @@ function App() {
           <Route path="stock" element={<StockList />} />
           <Route path="slip" element={<SlipList />} />
           <Route path="master" element={<MasterList />} />
+          <Route path="master/product" element={<ProductMaster />} />
+          <Route path="master/client" element={<ClientMaster />} />
+          <Route path="master/tax" element={<TaxMaster />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/login" replace />} />
