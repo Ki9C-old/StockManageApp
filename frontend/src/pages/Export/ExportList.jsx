@@ -1,7 +1,7 @@
 function ExportList() {
     return (
         <>
-            <h1>ここはExportListです</h1>
+            <h1>開発中...</h1>
         </>
     )
 }

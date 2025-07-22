@@ -1,7 +1,7 @@
 function StockList() {
     return (
         <>
-            <h1>ここはStockListです</h1>
+            <h1>開発中...</h1>
         </>
     )
 }

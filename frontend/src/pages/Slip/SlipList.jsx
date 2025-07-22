@@ -1,7 +1,7 @@
 function SlipList() {
     return (
         <>
-            <h1>ここはslipListです</h1>
+            <h1>開発中...</h1>
         </>
     )
 }

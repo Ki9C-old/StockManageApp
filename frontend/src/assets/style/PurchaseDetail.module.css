@@ -60,3 +60,9 @@
 .getMaster {
     margin-left: 20px;
 }
+
+.import {
+    width: 986px;
+    display: flex;
+    justify-content: flex-end;
+}

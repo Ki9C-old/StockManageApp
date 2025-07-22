@@ -24,7 +24,7 @@ function Layout() {
 
         //入荷系機能
         { pattern: '/import/create', name: '入荷登録' },
-        { pattern: '/import/:id', name: '入荷詳細' },
+        { pattern: '/import/:id/view', name: '入荷詳細' },
         { pattern: '/import', name: '入荷一覧' },
 
         //受注系機能

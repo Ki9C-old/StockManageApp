@@ -19,8 +19,11 @@ router.post('/search-list', async (req, res) => {
                 PurchaseView_PurchasedDate, 
                 PurchaseView_DeadlineDate, 
                 PurchaseView_ClientNm,
-                PurchaseView_Note`
+                PurchaseView_Note,
+                PurchaseView_StatusCd
+                `
             )
+            .eq('PurchaseView_StatusCd', 0)
             .order('PurchaseView_Id', { ascending: false })
         //発注番号
         if (conditions["Id"]) {
@@ -39,7 +42,7 @@ router.post('/search-list', async (req, res) => {
 
         //メモ
         if (conditions["Note"]) {
-            query = query.like('NoPurchaseView_Note', `%${conditions["Note"]}%`);
+            query = query.like('PurchaseView_Note', `%${conditions["Note"]}%`);
         }
 
         const { data, error } = await query;
@@ -82,7 +85,6 @@ router.post('/search-detail', async (req, res) => {
                 `
             )
 
-        //発注番号
         if (conditions["Id"]) {
             query = query.eq('PurchaseView_Id', conditions["Id"]);
         } else {
@@ -106,20 +108,17 @@ router.post('/search-detail', async (req, res) => {
 router.post('/insert', async (req, res) => {
     const { header, details } = req.body;
     console.log(req)
-    // let calculatedTotalAmount = 0
-    // let calculatedTotalAmountWithTax = 0
 
     if (!header || !details || details.length === 0) {
         return res.status(400).json({ error: 'headerまたはdetailsが不足しています。' });
     }
-    if (!header.SupplierNm || !header.PurchasedDate) { //必須項目チェック
+    if (!header.SupplierNm || !header.PurchasedDate) {
         return res.status(400).json({ error: '必須項目が不足しています。(SupplierNm, PurchasedDate)' });
     }
     for (const detail of details) {
         if (!detail.ProductNm || !detail.Quantity || !detail.Amount) {
             return res.status(400).json({ error: '明細の必須項目が不足しています。(ProductNm, Quantity, Amount)' });
         }
-        // QuantityとAmountが数値であることの確認
         if (isNaN(Number(detail.Quantity)) || isNaN(Number(detail.Amount))) {
             return res.status(400).json({ error: '数量または単価が不正な値です。' });
         }
@@ -140,7 +139,7 @@ router.post('/insert', async (req, res) => {
                 }
             ])
             .select('Purchase_Id') // 挿入後に生成されたIDを返すように指定
-            .single(); // 1つのレコードのみ挿入するので.single()を使用
+            .single();
 
         if (purchaseError) {
             console.error('発注ヘッダー挿入エラー:', purchaseError);
@@ -152,8 +151,8 @@ router.post('/insert', async (req, res) => {
             PurchaseItem_Id: newPurchaseId, // ヘッダーで生成されたIDを使用
             PurchaseItem_DetailNo: (index + 1), // 明細番号を自動採番
             PurchaseItem_ProductCd: detail.ProductCd,
-            PurchaseItem_Quantity: Number(detail.Quantity), // 数値に変換
-            PurchaseItem_Amount: Number(detail.Amount),     // 数値に変換
+            PurchaseItem_Quantity: Number(detail.Quantity),
+            PurchaseItem_Amount: Number(detail.Amount),
             PurchaseItem_TaxTypeId: detail.TaxTypeCd,
         }));
 
@@ -178,13 +177,11 @@ router.post('/insert', async (req, res) => {
 
 
 router.put('/update', async (req, res) => {
-    const { header, details } = req.body; // フロントエンドから送られるデータ構造に合わせて分割
+    const { header, details } = req.body;
 
-    // 1. バリデーション
     if (!header || !header.Id || !details) {
         return res.status(400).json({ error: '更新に必要な情報が不足しています。(Id, header, details)' });
     }
-    // TODO: 他のバリデーション (必須項目、型、範囲など)
 
     let calculatedTotalAmount = 0;
     let calculatedTotalAmountWithTax = 0;
@@ -201,7 +198,7 @@ router.put('/update', async (req, res) => {
     try {
         // ヘッダーの更新
         const { error: headerUpdateError } = await supabase
-            .from('Purchase') // テーブル名
+            .from('Purchase')
             .update({
                 Purchase_SupplierCd: header.SupplierCd,
                 Purchase_TotalAmount: calculatedTotalAmount,
@@ -211,10 +208,9 @@ router.put('/update', async (req, res) => {
                 Purchase_StatusCd: header.Purchase_StatusCd,
                 Purchase_Note: header.Note,
             })
-            .eq('Purchase_Id', header.Id); // 更新対象のレコードを指定
+            .eq('Purchase_Id', header.Id);
 
         if (headerUpdateError) {
-            console.error('発注ヘッダー更新エラー:', headerUpdateError);
             throw new Error('発注ヘッダーの更新に失敗しました。' + headerUpdateError.message);
         }
 
@@ -225,7 +221,6 @@ router.put('/update', async (req, res) => {
             .eq('PurchaseItem_Id', header.Id);
 
         if (deleteDetailsError) {
-            console.error('既存明細削除エラー:', deleteDetailsError);
             throw new Error('既存明細の削除に失敗しました。' + deleteDetailsError.message);
         }
 
@@ -244,8 +239,6 @@ router.put('/update', async (req, res) => {
             .insert(purchaseItemsToInsert);
 
         if (insertNewDetailsError) {
-            console.error('新規明細挿入エラー:', insertNewDetailsError);
-            // TODO: この場合、ヘッダーは更新済みで明細が空になってしまう
             throw new Error('新しい明細の登録に失敗しました。' + insertNewDetailsError.message);
         }
 
@@ -277,9 +270,8 @@ router.post('/delete', async (req, res) => {
             throw new Error('発注明細の削除に失敗しました。' + deleteItemsError.message);
         }
 
-        // ヘッダーを削除
         const { error: deleteHeaderError } = await supabase
-            .from('Purchase') // テーブル名
+            .from('Purchase')
             .delete()
             .eq('Purchase_Id', PurchaseId);
 
@@ -298,7 +290,7 @@ router.post('/delete', async (req, res) => {
 
 
 router.post('/fill-master', async (req, res) => {
-    const { supplierCd, productCds } = req.body; // supplierCdは単一、productCdsは配列
+    const { supplierCd, productCds } = req.body;
 
     const results = {
         supplierMaster: null,
@@ -313,7 +305,6 @@ router.post('/fill-master', async (req, res) => {
                 .eq('ClientMaster_ClientCd', supplierCd)
                 .single();
 
-            // PGRST116は「見つからない」エラーなので、それ以外の場合のみエラーとして処理
             if (supplierError && supplierError.code !== '22P02') {
                 console.error('サプライヤーマスタ検索エラー:', supplierError);
                 throw new Error('サプライヤーマスタの検索に失敗しました。' + supplierError.message);
@@ -321,8 +312,6 @@ router.post('/fill-master', async (req, res) => {
             results.supplierMaster = supplierData;
         }
 
-        // 2. 商品マスタと税率マスタの検索（複数の商品コードに対応）
-        // productCdsが空でない場合のみ検索を実行
         if (productCds && productCds.length > 0) {
             const uniqueProductCds = [...new Set(productCds)]; // 重複を排除
 
@@ -337,7 +326,7 @@ router.post('/fill-master', async (req, res) => {
                         TaxMaster_TaxRate
                     )
                 `)
-                .in('ProductMaster_ProductCd', uniqueProductCds); // 複数の商品コードで検索
+                .in('ProductMaster_ProductCd', uniqueProductCds);
 
             if (productError) {
                 console.error('商品マスタ検索エラー:', productError);
@@ -362,6 +351,29 @@ router.post('/fill-master', async (req, res) => {
         res.status(500).json({ error: true, message: 'サーバー内部エラーが発生しました。', details: e.message || e.toString() });
     }
 });
+
+// 入荷登録
+router.post('/import', async (req, res) => {
+    const { purchaseId } = req.body;
+    try {
+        // ヘッダーの更新
+        const { error: err } = await supabase
+            .from('Purchase')
+            .update({
+                Purchase_StatusCd: 1
+            })
+            .eq('Purchase_Id', purchaseId);
+
+        if (err) {
+            throw new Error('入荷処理に失敗しました。' + err.message);
+        }
+
+        return res.status(200).json({ message: '入荷完了' });
+    } catch (err) {
+        return res.status(401).json(err);
+    }
+});
+
 
 
 

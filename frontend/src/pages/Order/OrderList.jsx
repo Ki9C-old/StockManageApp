@@ -1,7 +1,7 @@
 function OrderList() {
     return (
         <>
-            <h1>ここはOrderListです</h1>
+            <h1>開発中...</h1>
         </>
     )
 }

@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import EditableTable from "../../components/common/EditableTable";
 import { useNavigate } from "react-router-dom";
 import LoadingOverlay from "../../components/common/LoadingOverlay";
-import { searchPurchaseDetail, insertPurchase, updatePurchase, deletePurchase, fillMasterData } from "../../api/purchase";
+import { searchPurchaseDetail, insertPurchase, updatePurchase, deletePurchase, fillMasterData, importPurchase } from "../../api/purchase";
 import { ImNewTab } from "react-icons/im";
 
 function PurchaseDetail(props) {
@@ -72,7 +72,7 @@ function PurchaseDetail(props) {
                         Amount: String(item.PurchaseView_Amount || ""),
                         TaxTypeCd: item.PurchaseView_TaxTypeId,
                         TaxTypeNm: item.PurchaseView_TaxTypeNm,
-                        TaxRate: String(item.PurchaseView_TaxRate || ""),
+                        TaxRate: String(item.PurchaseView_TaxRate || "0"),
                     }));
                     setPurchaseData(headerData);
                     setOriginalData(headerData);
@@ -124,6 +124,22 @@ function PurchaseDetail(props) {
         }
     }, [id, mode, isView, isEdit, isCreate, navigate]);                  // IDかmodeが変わったときもやるよ
     //------------------------------------------ 初期表示で実施 END ------------------------------------------//
+
+
+    // ------------------------------------------ステータスコード変換------------------------------------------//
+    const getStatusLabel = (statusCd) => {
+        switch (statusCd) {
+            case 0:
+            case "0":
+                return "未入荷";
+            case 1:
+            case "1":
+                return "入荷済み";
+            default:
+                return "未入荷";
+        }
+    };
+    // ------------------------------------------ステータスコード変換------------------------------------------//
 
 
     //------------------------------------------ 金額計算 ------------------------------------------//
@@ -329,6 +345,32 @@ function PurchaseDetail(props) {
     //-----------------------------------------DELETE------------------------------------------//
 
 
+    //-----------------------------------------入荷登録------------------------------------------//
+    const handleImport = async () => {
+        if (!window.confirm("入荷登録してよろしいですか？")) {
+            return;
+        }
+        setIsLoading(true);
+        try {
+            const importId = id;
+            await importPurchase(importId);
+            setPurchaseData(prev => ({
+                ...prev,
+                Purchase_StatusCd: "1"  // 文字列でも数値でもOK（getStatusLabel が両方対応しているなら）
+            }));
+            setIsLoading(false)
+            alert('入荷完了しました。')
+            navigate(`/purchase/${id}/view`);
+        } catch (err) {
+            alert(`入荷登録に失敗しました: ${err.message}`);
+            setIsLoading(false)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+    //-----------------------------------------入荷登録------------------------------------------//
+
+
     //------------------------------------------ テーブルのヘッダーの定義 START ------------------------------------------//
     const tableColumns = [
         { header: "明細番号", accessor: "DetailNo", width: "80px", editable: false },
@@ -432,7 +474,6 @@ function PurchaseDetail(props) {
                         }
                     });
 
-                    // ここで完全に空の行をフィルタリングし、明細番号を振り直す
                     const filteredAndReindexed = newTableData.filter(row =>
                         Object.keys(row).filter(key => key == 'ProductCd').some(key => row[key] !== "" && row[key] !== null && row[key] !== undefined)
                     ).map((row, index) => ({
@@ -455,7 +496,6 @@ function PurchaseDetail(props) {
                             };
                         }
                     });
-                    // ここで完全に空の行をフィルタリングし、明細番号を振り直す
                     const filteredAndReindexed = newTableData.filter(row =>
                         Object.values(row).some(value => value !== "" && value !== null && value !== undefined)
                     ).map((row, index) => ({
@@ -483,6 +523,7 @@ function PurchaseDetail(props) {
     };
     //------------------------------------------ マスタ検索  END ------------------------------------------//
 
+    const isImported = getStatusLabel(purchaseData.Purchase_StatusCd) === "入荷済み";
 
     return (
         <>
@@ -522,6 +563,12 @@ function PurchaseDetail(props) {
                                 <div className={styles.labelCell}>税込金額</div>
                                 <div className={`${styles.inputCell} ${isView ? "" : styles.disabled}`}>
                                     <input disabled onChange={(e) => handlePurchaseChange("TotalAmountWithTax", e.target.value)} value={purchaseData?.TotalAmountWithTax} />
+                                </div>
+                            </div>
+                            <div className={styles.row}>
+                                <div className={styles.labelCell}>ステータス</div>
+                                <div className={`${styles.inputCell} ${isView ? "" : styles.disabled}`}>
+                                    <input disabled value={getStatusLabel(purchaseData?.Purchase_StatusCd)} />
                                 </div>
                             </div>
                         </div>
@@ -605,6 +652,19 @@ function PurchaseDetail(props) {
                                     <Button color="green" width="60px" height="36px" fontSize="13px">編集</Button>
                                 </Link>
                                 <Button onClick={handleDelete} color="red" width="60px" height="36px" fontSize="13px">削除</Button>
+                                <div className={styles.import}>
+                                    <div className={styles.importButton}>
+                                        <Button
+                                            onClick={handleImport}
+                                            color={isImported ? "gray" : "green"}
+                                            disabled={isImported}
+                                            width="92px"
+                                            height="36px"
+                                            fontSize="13px">
+                                            入荷登録
+                                        </Button>
+                                    </div>
+                                </div>
                             </>
                         )}
                         {(isEdit || isCreate) && (

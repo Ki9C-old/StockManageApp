@@ -15,6 +15,7 @@ import ProductMaster from './pages/Master/ProductMaster.jsx';
 import ClientMaster from './pages/Master/ClientMaster.jsx';
 import TaxMaster from './pages/Master/TaxMaster.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import ImportDetail from './pages/Import/ImportDetail.jsx';
 
 function App() {
   return (
@@ -32,6 +33,8 @@ function App() {
           <Route path="purchase/:id/edit" element={<PurchaseDetail mode="edit" />} />
 
           <Route path="import" element={<ImportList />} />
+          <Route path="import/:id/view" element={<ImportDetail />} />
+
           <Route path="order" element={<OrderList />} />
           <Route path="export" element={<ExportList />} />
           <Route path="stock" element={<StockList />} />

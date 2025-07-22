@@ -15,7 +15,7 @@ function PurchaseList() {
 
     //--------------状態管理--------------//
     const [purchaseData, setPurchaseData] = useState([]);       //発注データ
-    const [isloading, setLoading] = useState(false);              //ローディング状況
+    const [isloading, setLoading] = useState(false);            //ローディング状況
     const [error, setError] = useState(null);                   //エラー状況
     const [searchConditions, setSearchConditions] = useState({  //検索条件
         Id: '',
@@ -37,7 +37,7 @@ function PurchaseList() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(conditions), // 検索条件JSONで送信
+                body: JSON.stringify(conditions),
             });
 
             if (!response.ok) {
@@ -64,7 +64,6 @@ function PurchaseList() {
             }));
             setPurchaseData(formattedData);
         } catch (err) {
-            console.error("データ取得エラー:", err);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -95,10 +94,8 @@ function PurchaseList() {
     //-------------検索条件変更時--------------//
     const handleSearchInputChange = (e) => {
         const { name, value } = e.target;
-        console.log(`Input changed: Name=${name}, Value=${value}`); // 追加
         setSearchConditions(prev => {
             const newState = { ...prev, [name]: value };
-            console.log("New searchConditions state:", newState); // 追加
             return newState;
         });
     };
@@ -189,7 +186,7 @@ function PurchaseList() {
                         <div>
                             <Link to="/purchase/create">
                                 <Button
-                                    onClick=""
+                                    onClick={() => { }}
                                     color="green"
                                     width="80px"
                                     height="40px"
